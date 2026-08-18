@@ -1,10 +1,11 @@
 import numpy as np
-from scipy.integrate import simpson
 import emcee
 
 from cluster_mass_like.likelihoods.x_ray.xray_simple import ln_prob_mxray_mtrue
 from cluster_mass_like.likelihoods.weak_lensing.wl_simple import ln_prob_mwl_mtrue
-from cluster_mass_like.halo_mass_function.ccl import CCLHaloMassFunction
+from cluster_mass_like.likelihoods.weak_lensing.wl_true_simple import (
+    ln_prob_mxray_mtrue,
+)
 
 
 class LnProb:
@@ -13,43 +14,31 @@ class LnProb:
         self.npars = 3
 
         # adding dummy values
+        self.mass_wl = 14.0
+        self.mass_xray = 14.0
+        self.mass_true = 14.0
+        self.parameters_wl = [None]
         self.parameters_wl_tr = [None, None]
         self.parameters_xray = [3.0]
 
-        self.hmf = CCLHaloMassFunction()
-
-        # integration values
-        self._integ_logm = np.linspace(13, 16, 51)
-
         # data
-        self.sample_mass_wl = None
-        self.sample_mass_xray = None
-        self.sample_redshift = None
+        self.data = None
         self.icov = None  # inverse of covariance matrix
 
     def prepare(self):
-        self.hmf.set_cosmo()
-        self.hmf.set_hmf()
+        pass
 
     def read_data(self):
         """Reads data and returns blah"""
-        self.sample_mass_wl = None
-        self.sample_mass_xray = None
+        self.data = None
         self.icov = None
 
     def lnlike(self):
-        # sort out dimentions here, should be (mtrue, nsample)
-        _lnlike_kenel = (
-            self.hmf.dndlnm(self._integ_logm, self.sample_redshift)
-            + ln_prob_mwl_mtrue(
-                self.sample_mass_wl, self._integ_logm, self.parameters_wl_tr
-            )
-            + ln_prob_mxray_mtrue(
-                self.sample_mass_xray, self._integ_logm, self.parameters_xray
-            )
+        return (
+            ln_prob_mwl(self.mass_wl, self.parameters_wl)
+            + ln_prob_mwl_mtrue(self.mass_wl, self.mass_true, self.parameters_wl_tr)
+            + ln_prob_mxray_mtrue(self.mass_xray, self.mass_true, self.parameters_xray)
         )
-
-        return np.log(simpson(np.exp(_lnlike_kenel), x=self._integ_logm, axis=0))
 
     def __call__(self, par1, par2):
         # set parameters
@@ -58,9 +47,9 @@ class LnProb:
 
         # compute ln(like)
 
-        lnlike_per_cluster = self.lnlike()
+        diff = self.data - self.lnlike()
 
-        return lnlike_per_cluster @ self.icov @ self.data
+        return diff @ self.icov @ self.data
 
 
 if __name__ == "__main__":
