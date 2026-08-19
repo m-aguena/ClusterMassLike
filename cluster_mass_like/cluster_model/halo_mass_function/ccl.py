@@ -64,7 +64,7 @@ class CCLHaloMassFunction(HaloMassFunction):
         Return
         ------
         np.ndarray
-            Halo mass function, shape (mass.shape, redshift.shape)
+            Halo mass function, shape (mass.size, redshift.size)
         """
         return np.array(
             [
@@ -74,4 +74,4 @@ class CCLHaloMassFunction(HaloMassFunction):
                 ]
                 for m_zdim, z_zdim in zip(*np.meshgrid(mass, redshift))
             ]
-        )
+        ).T
