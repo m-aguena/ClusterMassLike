@@ -41,11 +41,11 @@ class CCLHaloMassFunction(HaloMassFunction):
             Halo mass function, shape (mass.shape, redshift.shape)
         """
 
-        val = self._hmf_cache.get((mass, redshift))
+        val = self._cache.get((mass, redshift))
         if val is None:
             _scale_factor = 1.0 / (1.0 + redshift)
-            val = self.halo_mass_function(self.cosmo, mass, _scale_factor)
-            self._hmf_cache[(mass, redshift)] = val
+            val = self._hmf(self._cosmo, mass, _scale_factor)
+            self._cache[(mass, redshift)] = val
 
         return val
 
