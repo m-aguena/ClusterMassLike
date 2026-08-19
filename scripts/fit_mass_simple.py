@@ -7,8 +7,6 @@ from astropy.table import Table
 import time
 
 sys.path.append("/pbs/home/m/maguena/git_codes/ClusterMassLike/")
-print(sys.path)
-
 
 from cluster_mass_like.likelihoods.x_ray.xray_powerlaw import ln_prob_mxray_mtrue  # noqa: E402
 from cluster_mass_like.likelihoods.weak_lensing.wl_true_powerlaw import (  # noqa: E402
@@ -38,7 +36,7 @@ class LnProb:
         self.icov = None  # inverse of covariance matrix
 
         # internal to speed up computations
-        self._hmf_tabulated = None
+        self._ln_hmf_tabulated = None
 
     def prepare(self):
         print("Seting up HMF")
@@ -47,15 +45,15 @@ class LnProb:
 
         # tabulate hmf
         print("  Tabulating HMF")
-        self._hmf_tabulated = self.hmf.dndlnm(
-            10**self._integ_logm, self.sample_redshift
+        self._ln_hmf_tabulated = np.log(
+            self.hmf.dndlnm(10**self._integ_logm, self.sample_redshift)
         )
-        print(self._hmf_tabulated.shape)
 
     def read_data(self, catalog_path, wl_col, xray_col, z_col):
         """Reads data and returns blah"""
         print("Reading data")
         data = Table.read(catalog_path)
+        data = data[(data[wl_col] > 0) * (data[xray_col] > 0)]
         self.sample_logm_wl = np.log10(data[wl_col])[None, :]
         self.sample_logm_xray = np.log10(data[xray_col])[None, :]
         self.sample_redshift = data[z_col]
@@ -65,7 +63,7 @@ class LnProb:
     def lnlike(self):
         # sort out dimentions here, should be (mtrue, nsample)
         _lnlike_kenel = (
-            self._hmf_tabulated
+            self._ln_hmf_tabulated
             + ln_prob_mwl_mtrue(
                 self.sample_logm_wl, self._integ_logm, self.parameters_wl
             )
@@ -85,7 +83,9 @@ class LnProb:
 
         lnlike_per_cluster = self.lnlike()
 
-        return lnlike_per_cluster @ self.icov @ lnlike_per_cluster
+        return lnlike_per_cluster.sum()
+
+        return -0.5 * lnlike_per_cluster @ self.icov @ lnlike_per_cluster
 
 
 if __name__ == "__main__":
