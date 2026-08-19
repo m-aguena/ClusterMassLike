@@ -18,7 +18,7 @@ from cluster_mass_like.cluster_model.halo_mass_function.ccl import CCLHaloMassFu
 class LnProb:
     def __init__(self):
         # number of parameters to fit
-        self.npars = 2
+        self.npars = 6
 
         # adding dummy values
         self.parameters_wl = [0.0, 1.0, 1.0]
@@ -76,10 +76,17 @@ class LnProb:
 
     def __call__(self, pars):
         # set parameters
-        self.parameters_wl[1] = pars[0]
-        self.parameters_wl[1] = pars[1]
+        #self.parameters_wl[1] = pars[0]
+        #self.parameters_xray[1] = pars[1]
+        self.parameters_wl = pars[:3]
+        self.parameters_xray = pars[3:]
 
         # compute ln(like)
+
+        if self.parameters_wl[-1]<=0:
+            return -np.inf
+        if self.parameters_xray[-1]<=0:
+            return -np.inf
 
         lnlike_per_cluster = self.lnlike()
 
@@ -128,7 +135,7 @@ if __name__ == "__main__":
         "--nsteps",
         type=int,
         help="emcee number of steps",
-        default=100,
+        default=1000,
     )
     args = parser.parse_args()
 
@@ -141,8 +148,9 @@ if __name__ == "__main__":
     print(f"  {time.time() - t0:.2f} sec.")
 
     # setup for mcmc
-    initial_guess = [1, 1]
-    initial_spread = [0.1, 0.1]
+    initial_guess = [0, 1, 1, 0, 1, 1]
+    initial_spread = [0.1] * 6
+    initial_spread[2] = initial_spread[5] = 0.001
 
     # run mcmc
 
