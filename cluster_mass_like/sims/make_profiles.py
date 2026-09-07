@@ -1,7 +1,8 @@
+from pathlib import Path
+
 import astropy.units as u
 import numpy as np
 from astropy.cosmology import WMAP7 as cosmo
-from pathlib import Path
 
 from . import lensing as lensing
 from . import sims_io as sims_io
