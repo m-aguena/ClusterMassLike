@@ -40,6 +40,6 @@ class MagicMass:
         g = integral * u.solMass / u.Mpc**2
         g = g.to(u.kg / u.m**2) * G
 
-        M = self.r**2 * integral
+        M = self.radius**2 * integral
 
         return g, M
