@@ -159,7 +159,7 @@ def add_profile(full_table, colors, axes, concentration_col, func, **kwargs):
 def add_profile_fixm(
     full_table, colors, axes, concentration_col, ds_pred_samples, func, **kwargs
 ):
-    add_profile(axes, concentration_col, func=func, **kwargs)
+    add_profile(full_table, colors, axes, concentration_col, func=func, **kwargs)
 
     if ds_pred_samples is None:
         return
