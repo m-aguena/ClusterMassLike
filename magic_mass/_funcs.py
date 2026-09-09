@@ -1,12 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# # Fit Enclosed mass and concentration
-
-# In[1]:
-
-
-# from dsigma.helpers import dsigma_table
 import astropy.units as u
 import matplotlib as mpl
 import matplotlib.cm as cm
@@ -15,99 +6,8 @@ import numpy as np
 from astropy.constants import G
 from astropy.cosmology import Planck15
 from astropy.table import Table, dstack, vstack
-
-
-# In[758]:
-
-
-get_ipython().run_line_magic('load_ext', 'autoreload')
-get_ipython().run_line_magic('autoreload', '2')
-import sys
-sys.path.append("/pbs/home/m/maguena/git_codes/ClusterMassLike/")
-
-
-# In[ ]:
-
-
-
-
-
-# In[2]:
-
-
-# %pip install --upgrade astropy
-
-
-# In[2]:
-
-
-# %pip install --upgrade pandas --no-cache-dir
-
-
-# In[2]:
-
-
 import pandas
 
-
-# In[3]:
-
-
-m_bins = np.array([12.2, 12.5, 12.8, 13.1, 13.4, 13.7, 14.7])
-
-
-# In[4]:
-
-
-import matplotlib.colors as mcolors
-
-
-# 1. Define a helper function to slice the colormap
-
-
-# In[627]:
-
-
-def plot_cm_base(delta=None):
-    fig, ax = plt.subplots(layout="constrained")
-
-    ax.set_xscale("log")
-    ax.set_yscale("log")
-
-    subs = r"{\rm crit}"
-    if delta is not None:
-
-        subs = rf"{{{delta}_{subs}}}"
-
-    ax.set_xlabel(rf"M$_{subs}$ [M$_\odot$]")
-    ax.set_ylabel(rf"$c_{subs}$")
-
-    fig.colorbar(
-        mpl.colorizer.ColorizingArtist(colorizer),
-        ax=ax,
-        orientation="vertical",
-        label=r"log$_{10}$(M$_{\rm lum}$/M$_\odot$)",
-    )
-
-    return fig, ax
-
-
-# In[636]:
-
-
-def plt_errorbars(ax, x, y, xerr, yerr, **kwargs):
-    _kwargs = {**kwargs}
-    for i in range(6):
-        ax.errorbar(
-            x[i],
-            y[i],
-            xerr[i],
-            yerr[i],
-            color=colors[i],
-            markeredgecolor=colors[i],
-            **_kwargs
-        )
-        _kwargs["label"] = None
 
 
 # ## Functions for profiles
@@ -136,62 +36,7 @@ cosmo = CCLCosmology(
 )
 
 
-# In[141]:
-
-
-def nz_normal(*args):
-    val = np.random.normal(*args)
-    while val < 0:
-        val = np.random.normal(*args)
-    return val
-
-
-# In[604]:
-
-
-def plot_profiles_base():
-
-    fig, axes = plt.subplots(3, 2, sharex=True)
-
-    for i, ax in enumerate(axes.flatten()):
-        ax.errorbar(
-            mm.radius,
-            full_table["ds_t_pc2"][i],
-            full_table["ds_err_pc2"][i],
-            ls="",
-            marker=".",
-            markersize=7,
-            markeredgewidth=0.0,
-            color=colors[i],
-            lw=1,
-            label=rf"$[{m_bins[i]:.1f}:{m_bins[i+1]:.1f}]$",
-        )
-
-        ax.legend()
-
-        ax.set_xscale("log")
-        ax.set_yscale("log")
-        ax.tick_params(axis="both", which="both", direction="in")
-
-        ax.axvline(full_table["R500_crit"][i], color=colors[i], ls="--")
-        ax.axvline(full_table["R200_crit"][i], color=colors[i], ls=":")
-
-    for ax in axes[-1]:
-        ax.set_xlabel("R [Mpc]")
-        # ax.set_xticks(ax.get_xticks())
-        # ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
-        # ax.tick_params(axis='x', labelrotation=45)
-
-    axes[1, 0].set_ylabel(r"$\Delta \Sigma$ [M$_\odot$pc$^{-2}$]")
-
-    plt.subplots_adjust(hspace=0, wspace=0.2)
-
-    return fig, axes
-
-
 # ### Basic plots
-
-# In[2]:
 
 
 lenspath = "/sps/euclid/Users/maguena/working/fgas/data/weak lensing/cluster_coverfraction.fits"
@@ -313,42 +158,6 @@ print(bs_DS.shape)
 # In[8]:
 
 
-def read_ds_data_T(data_path_template, **kwargs):
-    table_list = []
-    for i in np.arange(len(m_bins) - 1):
-        table_tmp = Table.read(data_path_template % i, **kwargs)
-        table_tmp["mass_bin"] = i
-        table_list.append(table_tmp)
-    out = dstack(table_list)
-
-    # convert from Mpc**2 to pc**2 units
-    out["ds_t_pc2"] = out["ds_t"] * 10**12
-    if "ds_err" in out.colnames:
-        out["ds_err_pc2"] = out["ds_err"] * 10**12
-
-    return out
-
-
-# In[6]:
-
-
-def read_ds_data(data_path_template, **kwargs):
-    table_dict = {}
-    for i in np.arange(len(m_bins) - 1):
-        print(data_path_template % i)
-        table_tmp = Table.read(data_path_template % i, **kwargs)
-        table_tmp["mass_bin"] = i
-        for col in table_tmp.colnames:
-            table_dict[col] = table_dict.get(col, []) + [table_tmp[col]]
-    # out = Table(list(table_dict.values()), names=list(table_dict.keys()))
-    out = Table(table_dict)
-
-    # convert from Mpc**2 to pc**2 units
-    out["ds_t_pc2"] = out["ds_t"] * 10**12
-    if "ds_err" in out.colnames:
-        out["ds_err_pc2"] = out["ds_err"] * 10**12
-
-    return out
 
 
 # In[7]:
@@ -462,47 +271,6 @@ plot_profiles_base()
 # In[527]:
 
 
-class MagicMass:
-    def __init__(self, radius=None):
-
-        self.phi = np.linspace(0.00001, np.pi / 2, num=200)
-
-        # is this radius definition okay? What are the units?
-        self.radius = np.logspace(-1, 0.5, num=10)
-
-        self.dphi = np.diff(self.phi)[0]
-        self.rsinphi = self.radius[:, None] / np.sin(self.phi[None, :])
-
-    def measure_gt_mass(self, theta, DS, plot=True):
-
-        if plot:
-            plt.plot(self.phi, 1 / np.sin(self.phi), "*")
-            plt.show()
-
-        # get delta_sigma values at r=r/sin(phi)
-        integrand = np.array(
-            [
-                np.interp(np.log(self.rsinphi), np.log(theta[i]), DS[i])
-                for i in range(DS.shape[0])
-            ]
-        )
-
-        # rsinphi.max()
-        # integrand.shape
-
-        if plot:
-            plt.pcolor(np.log10(integrand[-6]))
-            plt.colorbar()
-            plt.show()
-
-        integral = 4 * np.sum(integrand, axis=-1) * self.dphi
-
-        g = integral * u.solMass / u.Mpc**2
-        g = g.to(u.kg / u.m**2) * G
-
-        M = self.r**2 * integral
-
-        return g, M
 
 
 mm = MagicMass()
@@ -719,8 +487,6 @@ for i in np.arange(len(m_bins) - 1):
 # In[22]:
 
 
-def get_delta(mass, radius, rho_bkg):
-    return mass / (4 * np.pi / 3 * radius**3 * rho_bkg)
 
 
 # In[573]:
@@ -759,112 +525,16 @@ full_table["Delatcrit_bkg"] = get_delta(
 # In[24]:
 
 
-from scipy.interpolate import interp1d
 
 
 # In[117]:
 
 
-def get_delta_quantity_np(delta, delta_vals, quantity_vals, log=False):
-    mask = quantity_vals > 0
-    if log:
-        return 10 ** np.interp(delta, delta_vals[mask], np.log10(quantity_vals[mask]))
-    return np.interp(delta, delta_vals[mask], quantity_vals[mask])
 
 
 # In[25]:
 
 
-def get_delta_quantity(delta, delta_vals, quantity_vals, log=False):
-    mask = quantity_vals > 0
-    if log:
-        return 10 ** interp1d(
-            delta_vals[mask], np.log10(quantity_vals[mask]), bounds_error=False
-        )(delta)
-    return interp1d(delta_vals[mask], quantity_vals[mask], bounds_error=False)(delta)
-
-
-# In[528]:
-
-
-def add_mrdelta_to_bs_table(bs_table, Delta):
-    bs_table[f"R{Delta}_crit"] = np.array(
-        [
-            [
-                get_delta_quantity(Delta, _Delatcrit_bkg, mm.radius, log=True)
-                for _Delatcrit_bkg, _vals in zip(Delatcrit_bkg.T, vals.T)
-            ]
-            for Delatcrit_bkg in bs_table["Delatcrit_bkg"]
-        ]
-    )
-    bs_table[f"M{Delta}_crit"] = np.array(
-        [
-            [
-                get_delta_quantity(Delta, _Delatcrit_bkg, _vals, log=True)
-                for _Delatcrit_bkg, _vals in zip(Delatcrit_bkg.T, vals.T)
-            ]
-            for Delatcrit_bkg, vals in zip(
-                bs_table["Delatcrit_bkg"], bs_table["magic_mass"]
-            )
-        ]
-    )
-    bs_table[f"M{Delta}_crit"].info.format = "%.4e"
-
-
-# In[410]:
-
-
-def add_mrdelta_to_full_table(full_table, Delta):
-    full_table[f"R{Delta}_crit"] = [
-        get_delta_quantity(Delta, Delatcrit_bkg, mm.radius, log=True)
-        for Delatcrit_bkg in full_table["Delatcrit_bkg"]
-    ]
-    full_table[f"M{Delta}_crit"] = [
-        get_delta_quantity(Delta, Delatcrit_bkg, mass_vals, log=True)
-        for Delatcrit_bkg, mass_vals in zip(
-            full_table["Delatcrit_bkg"], full_table["magic_mass_bs_mean"]
-        )
-    ]
-    full_table[f"M{Delta}_crit"].info.format = "%.4e"
-
-
-# In[379]:
-
-
-# Not in use
-def get_mr_err(delta, delta_vals, quantity_vals, quantity_errs):
-
-    mask = np.where(quantity_vals > 0)[0][::-1]
-    delta_filt = delta_vals[mask]
-    errs_filt = quantity_errs[mask]
-
-    print(quantity_vals[mask])
-    plt.plot(quantity_vals[mask])
-    plt.show()
-    plt.plot(delta_filt)
-    plt.yscale("log")
-    print(delta_filt)
-
-    i = np.digitize(delta, delta_filt) - 1
-    ratio = (delta - delta_filt[i]) / (delta_filt[i + 1] - delta_filt[i])
-
-    return np.sqrt(
-        ratio**2 * errs_filt[i + 1] ** 2 + (1 - ratio) ** 2 * errs_filt[i] ** 2
-    )
-
-
-# In[411]:
-
-
-def add_mrdelta_err_to_full_table(full_table, Delta):
-
-    full_table[f"M{Delta}_crit_err"] = [
-        get_delta_quantity(Delta, Delatcrit_bkg, mass_vals, log=False)
-        for Delatcrit_bkg, mass_vals in zip(
-            full_table["Delatcrit_bkg"], full_table["magic_mass_bs_std"]
-        )
-    ]
-    full_table[f"M{Delta}_crit_err"].info.format = "%.4e"
 
 
 # #### Compute
@@ -1070,33 +740,6 @@ def convert_mass(M1, c1, c2):
 # In[613]:
 
 
-def add_profile_analytic(axes, delta=500, ds_pred_samples=None, **kwargs):
-    for i, ax in enumerate(axes.flatten()):
-        ax.plot(
-            mm.radius,
-            clmm.compute_excess_surface_density(
-                mm.radius,
-                full_table[f"M{delta}_crit"][i],
-                full_table[f"c{delta}_crit"][i],
-                full_table["z_l"][i][0],
-                # full_table["z_s"][i],
-                cosmo,
-                delta_mdef=delta,
-                halo_profile_model="nfw",
-                massdef="critical",
-            ),
-            color=colors[i],
-            **kwargs,
-        )
-        if ds_pred_samples is not None:
-            ax.fill_between(
-                mm.radius,
-                np.quantile(ds_pred_samples[i], 0.16, axis=0),
-                np.quantile(ds_pred_samples[i], 0.84, axis=0),
-                color=colors[i],
-                alpha=0.3,
-                lw=0,
-            )
 
 
 # #### Errs for full_table
@@ -1674,43 +1317,6 @@ def safe_fit(*args, **kwargs):
 # In[654]:
 
 
-def add_profile(axes, concentration_col, func=pf.func2h, **kwargs):
-
-    for i, ax in enumerate(axes.flatten()):
-
-        ax.plot(
-            mm.radius,
-            func(
-                mm.radius,
-                full_table["M500_crit"][i],
-                full_table[concentration_col][i],
-                full_table["z_l"][i][0],
-                500,
-            ),
-            color=colors[i],
-            **kwargs,
-        )
-
-
-def add_profile_fixm(
-    axes, concentration_col, ds_pred_samples, func=pf.func2h, **kwargs
-):
-
-    add_profile(axes, concentration_col, func=func, **kwargs)
-
-    if ds_pred_samples is None:
-        return
-
-    for i, ax in enumerate(axes.flatten()):
-
-        ax.fill_between(
-            mm.radius,
-            np.quantile(ds_pred_samples[i], 0.16, axis=0),
-            np.quantile(ds_pred_samples[i], 0.84, axis=0),
-            color=colors[i],
-            alpha=0.3,
-            lw=0,
-        )
 
 
 # ### Fit
@@ -2114,35 +1720,6 @@ class MCMCFit:
 # In[253]:
 
 
-def plot_chain(mass_fit):
-
-    n = len(mass_fit) - 1
-    fig, axes = plt.subplots(n, n)
-
-    for i, axl in enumerate(axes):
-        for j in range(i):
-            axl[j].scatter(mass_fit[j], mass_fit[i], s=1)
-
-        # axl[i].scatter(mass_fit[i], np.exp(mass_fit[-1])/np.exp(mass_fit[-1]).max())
-        axl[i].scatter(mass_fit[i], np.exp(mass_fit[-1] - mass_fit[-1].max()), s=1)
-        # axl[i].scatter(mass_fit[i], mass_fit[-1])
-
-        for ax in axl[i + 1 :]:
-            ax.axis("off")
-
-    for ax in axes[:, 1:].flatten():
-        ax.set_yticklabels([])
-    for ax in axes[:-1, :].flatten():
-        ax.set_xticklabels([])
-
-
-# In[254]:
-
-
-def plot_like(mass_fit):
-    fig, axes = plt.subplots(len(mass_fit))
-    for i in range(len(mass_fit)):
-        axes[i].plot(mass_fit[i])
 
 
 # In[346]:
