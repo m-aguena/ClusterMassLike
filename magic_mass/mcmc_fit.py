@@ -103,3 +103,11 @@ class MCMCFit:
         return np.vstack([self.fit.transpose(1, 0, 2), [self.lnlike]]).transpose(
             1, 0, 2
         )
+
+    def save_chain(self, outfile_pref):
+        np.save(f"{outfile_pref}.npy", self.get_vstack_res())
+
+    def load_chain(self, outfile_pref):
+        dat = np.load(f"{outfile_pref}.npy")
+        self.fit = dat[:, :2, :]
+        self.lnlike = dat[:, 2, :]
