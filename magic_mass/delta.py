@@ -2,6 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from scipy.interpolate import interp1d
+import astropy.units as u
+
+
+def get_rdelta(mdelta, delta, z, cosmo):
+    return (
+        3
+        * mdelta
+        / (4 * np.pi * cosmo.critical_density(z).to(u.solMass / u.Mpc**3).value * delta)
+    ) ** (1 / 3)
 
 
 def get_delta(mass, radius, rho_bkg):
