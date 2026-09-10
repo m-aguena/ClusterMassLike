@@ -187,33 +187,6 @@ def add_profile_fixm(
 ######################
 
 
-def plot_chain(mass_fit):
-    n = len(mass_fit) - 1
-    fig, axes = plt.subplots(n, n)
-
-    for i, axl in enumerate(axes):
-        for j in range(i):
-            axl[j].scatter(mass_fit[j], mass_fit[i], s=1)
-
-        # axl[i].scatter(mass_fit[i], np.exp(mass_fit[-1])/np.exp(mass_fit[-1]).max())
-        axl[i].scatter(mass_fit[i], np.exp(mass_fit[-1] - mass_fit[-1].max()), s=1)
-        # axl[i].scatter(mass_fit[i], mass_fit[-1])
-
-        for ax in axl[i + 1 :]:
-            ax.axis("off")
-
-    for ax in axes[:, 1:].flatten():
-        ax.set_yticklabels([])
-    for ax in axes[:-1, :].flatten():
-        ax.set_xticklabels([])
-
-
-def plot_like(mass_fit):
-    fig, axes = plt.subplots(len(mass_fit))
-    for i in range(len(mass_fit)):
-        axes[i].plot(mass_fit[i])
-
-
 def quant_err(x):
     return np.array(
         [

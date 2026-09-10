@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import emcee
 
 
@@ -111,3 +112,33 @@ class MCMCFit:
         dat = np.load(f"{outfile_pref}.npy")
         self.fit = dat[:, :2, :]
         self.lnlike = dat[:, 2, :]
+
+    def plot_chain(self, i, burnin):
+        mass_fit = self.get_vstack_res()[i, :, burnin:]
+        n = len(mass_fit) - 1
+        fig, axes = plt.subplots(n, n)
+
+        for i, axl in enumerate(axes):
+            for j in range(i):
+                axl[j].scatter(mass_fit[j], mass_fit[i], s=1)
+
+            # axl[i].scatter(mass_fit[i], np.exp(mass_fit[-1])/np.exp(mass_fit[-1]).max())
+            axl[i].scatter(mass_fit[i], np.exp(mass_fit[-1] - mass_fit[-1].max()), s=1)
+            # axl[i].scatter(mass_fit[i], mass_fit[-1])
+
+            for ax in axl[i + 1 :]:
+                ax.axis("off")
+
+        for ax in axes[:, 1:].flatten():
+            ax.set_yticklabels([])
+        for ax in axes[:-1, :].flatten():
+            ax.set_xticklabels([])
+
+        return fig, axes
+
+    def plot_like(self, i, burnin):
+        mass_fit = self.get_vstack_res()[i, :, burnin:]
+        fig, axes = plt.subplots(len(mass_fit))
+        for i in range(len(mass_fit)):
+            axes[i].plot(mass_fit[i])
+        return fig, axes
