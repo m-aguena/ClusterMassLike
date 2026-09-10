@@ -35,7 +35,7 @@ class MCMCFit:
 
     def theo(self, logmdelta, cdelta, i):
         return self.fit_func(
-            self.full_table.emass["enclosed_mass_radius"][i],
+            self.full_table["rp"][i],
             10**logmdelta,
             cdelta,
             self.full_table["z_l"][i][0],
@@ -49,11 +49,11 @@ class MCMCFit:
             * (
                 (
                     logmdelta * np.log(10)
-                    - np.log(self.full_table[f"M{self.delta}_crit"][i])
+                    - np.log(self.full_table.emass[f"M{self.delta}_crit"][i])
                 )
                 / (
-                    self.full_table[f"M{self.delta}_crit_err"][i]
-                    / self.full_table[f"M{self.delta}_crit"][i]
+                    self.full_table.emass[f"M{self.delta}_crit_err"][i]
+                    / self.full_table.emass[f"M{self.delta}_crit"][i]
                 )
             )
             ** 2
