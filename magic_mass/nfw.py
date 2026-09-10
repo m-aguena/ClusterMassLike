@@ -12,6 +12,10 @@ def convert_mass(M1, c1, c2):
     return M1 * nfw_int(c2) / nfw_int(c1)
 
 
+def mass_nfw(radius, mdelta, cdelta, rdelta):
+    return mdelta * nfw_int(cdelta * radius / rdelta) / nfw_int(cdelta)
+
+
 class ProfileFit:
     def __init__(self):
         self.biases = {}
