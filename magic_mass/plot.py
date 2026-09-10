@@ -254,3 +254,27 @@ def add_profile_mcmc(axes, full_table, mcmc_fit, burnin, func, colors, **kwargs)
             color=colors[i],
             **kwargs,
         )
+
+
+def add_profile_mcmc_err(axes, full_table, mcmc_fit, burnin, func, colors, **kwargs):
+    for i, ax in enumerate(axes.flatten()):
+        vals = func(
+            full_table["rp"][i][:, None],
+            10 ** mcmc_fit[i, 0, burnin:][None, :],
+            mcmc_fit[i, 1, burnin:][None, :],
+            full_table["z_l"][i][0],
+        )
+        ax.plot(
+            full_table["rp"][i],
+            vals.mean(axis=-1),
+            color=colors[i],
+            **kwargs,
+        )
+        ax.fill_between(
+            full_table["rp"][i],
+            np.quantile(vals, 0.16, axis=-1),
+            np.quantile(vals, 0.84, axis=-1),
+            color=colors[i],
+            lw=0,
+            alpha=0.3,
+        )
