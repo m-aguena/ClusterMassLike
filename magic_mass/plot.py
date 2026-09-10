@@ -75,7 +75,7 @@ def plot_profiles_base(full_table, m_bins, colors):
 
     for i, ax in enumerate(axes.flatten()):
         ax.errorbar(
-            full_table["enclosed_mass_radius"][i],
+            full_table["rp"][i],
             full_table["ds_t_pc2"][i],
             full_table["ds_err_pc2"][i],
             ls="",
@@ -93,8 +93,8 @@ def plot_profiles_base(full_table, m_bins, colors):
         ax.set_yscale("log")
         ax.tick_params(axis="both", which="both", direction="in")
 
-        ax.axvline(full_table["R500_crit"][i], color=colors[i], ls="--")
-        ax.axvline(full_table["R200_crit"][i], color=colors[i], ls=":")
+        ax.axvline(full_table.emass["R500_crit"][i], color=colors[i], ls="--")
+        ax.axvline(full_table.emass["R200_crit"][i], color=colors[i], ls=":")
 
     for ax in axes[-1]:
         ax.set_xlabel("R [Mpc]")
@@ -205,3 +205,72 @@ def plot_like(mass_fit):
     fig, axes = plt.subplots(len(mass_fit))
     for i in range(len(mass_fit)):
         axes[i].plot(mass_fit[i])
+
+
+def quant_err(x):
+    return np.array(
+        [
+            [np.mean(x) - np.quantile(x, 0.16)],
+            [np.quantile(x, 0.84) - np.mean(x)],
+        ]
+    )
+
+
+def quant_err_vec(x):
+    return np.array(
+        [
+            np.mean(x, axis=-1) - np.quantile(x, 0.16, axis=-1),
+            np.quantile(x, 0.84, axis=-1) - np.mean(x, axis=-1),
+        ]
+    )
+
+
+def get_chain_mass_and_err(_fit, burnin=2000):
+    return (
+        10 ** _fit[0, burnin:].mean(),
+        10 ** _fit[0, burnin:].mean() * np.log(10) * quant_err(_fit[0, burnin:]),
+    )
+
+
+def get_chain_mass_and_err_vec(_fit, burnin=2000, metric=np.median):
+    mass = 10 ** metric(_fit[:, 0, burnin:], axis=-1)
+    return (
+        mass,
+        (mass * np.log(10) * quant_err_vec(_fit[:, 0, burnin:])).T,
+    )
+
+
+def add_mc_fit(ax, fit, burnin, colors, **kwargs):
+    _kwargs = {**kwargs}
+    for i, (m, merr, c, cerr) in enumerate(
+        zip(
+            *get_chain_mass_and_err_vec(fit, burnin=burnin),
+            fit[:, 1, burnin:].mean(axis=-1),
+            quant_err_vec(fit[:, 1, burnin:]).T,
+        )
+    ):
+        ax.errorbar(
+            m,
+            c,
+            cerr[:, None],
+            merr[:, None],
+            color=colors[i],
+            markeredgecolor=colors[i],
+            **_kwargs,
+        )
+        _kwargs["label"] = None
+
+
+def add_profile_mcmc(axes, full_table, mcmc_fit, burnin, func, colors, **kwargs):
+    for i, ax in enumerate(axes.flatten()):
+        ax.plot(
+            full_table["rp"][i],
+            func(
+                full_table["rp"][i],
+                10 ** mcmc_fit[i, 0, burnin:].mean(),
+                mcmc_fit[i, 1, burnin:].mean(),
+                full_table["z_l"][i][0],
+            ),
+            color=colors[i],
+            **kwargs,
+        )
