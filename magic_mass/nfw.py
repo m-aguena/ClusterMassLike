@@ -43,7 +43,7 @@ class ProfileFit:
             radius,
             z,
             cosmo,
-            halobias=self.bias(mdelta, z, delta),
+            halobias=self.bias(mdelta, z, delta, cosmo),
         )
 
     def func2h(self, radius, mdelta, cdelta, z, delta, cosmo):
