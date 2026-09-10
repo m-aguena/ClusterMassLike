@@ -70,14 +70,21 @@ def plt_errorbars(ax, x, y, xerr, yerr, colors, **kwargs):
 #########################
 
 
-def plot_profiles_base(full_table, m_bins, colors):
+def plot_profiles_base(
+    full_table,
+    m_bins,
+    colors,
+    prof_col="ds_t_pc2",
+    prof_col_err="ds_err_pc2",
+    ylabel=r"$\Delta \Sigma$ [M$_\odot$pc$^{-2}$]",
+):
     fig, axes = plt.subplots(3, 2, sharex=True)
 
     for i, ax in enumerate(axes.flatten()):
         ax.errorbar(
             full_table["rp"][i],
-            full_table["ds_t_pc2"][i],
-            full_table["ds_err_pc2"][i],
+            full_table[prof_col][i],
+            full_table[prof_col_err][i],
             ls="",
             marker=".",
             markersize=7,
@@ -102,7 +109,7 @@ def plot_profiles_base(full_table, m_bins, colors):
         # ax.set_xticklabels(ax.get_xticklabels(), rotation=45)
         # ax.tick_params(axis='x', labelrotation=45)
 
-    axes[1, 0].set_ylabel(r"$\Delta \Sigma$ [M$_\odot$pc$^{-2}$]")
+    axes[1, 0].set_ylabel(ylabel)
 
     plt.subplots_adjust(hspace=0, wspace=0.2)
 
