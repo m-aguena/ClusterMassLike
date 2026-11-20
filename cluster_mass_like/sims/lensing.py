@@ -1,3 +1,4 @@
+import astropy.units as u
 import numpy as np
 from astropy import constants as const
 
@@ -9,9 +10,9 @@ def KaiserSquires(Sigma):
     k = np.fft.fftfreq(kappa_tilde.shape[0])
 
     oper_1 = (
-        -1.0 / (k[:, None] ** 2 + k[None, :] ** 2) * (k[:, None] ** 2 - k[None, :] ** 2)
+         1.0 / (k[:, None] ** 2 + k[None, :] ** 2) * (k[:, None] ** 2 - k[None, :] ** 2)
     )
-    oper_2 = -2.0 / (k[:, None] ** 2 + k[None, :] ** 2) * k[:, None] * k[None, :]
+    oper_2 = 2.0 / (k[:, None] ** 2 + k[None, :] ** 2) * k[:, None] * k[None, :]
 
     # k=0 is a mass sheat, which does not produce any shear
     oper_1[0, 0] = 0
@@ -61,8 +62,10 @@ def compress_gt(mass_map, Et, R, phi, n_rbins):
     r_bins = np.insert(np.logspace(-2, np.log10(7.08), n_rbins), 0, 0)
     phi_bins = np.linspace(-np.pi, np.pi + 0.01, num=30)
 
-    ii_r = np.digitize(R, r_bins) - 1
-    ii_phi = np.digitize(phi, phi_bins) - 1
+    #ii_r = np.digitize(R, r_bins) - 1
+    #ii_phi = np.digitize(phi, phi_bins) - 1
+    ii_r = np.clip(np.digitize(R, r_bins)-1, 0, len(r_bins)-2)
+    ii_phi = np.clip(np.digitize(phi, phi_bins)-1, 0, len(phi_bins)-2)
 
     _N = np.zeros((len(r_bins) - 1, len(phi_bins) - 1))
     _K = np.zeros((len(r_bins) - 1, len(phi_bins) - 1))
@@ -75,12 +78,12 @@ def compress_gt(mass_map, Et, R, phi, n_rbins):
         _K[i_r, i_phi] += kk
         _GT[i_r, i_phi] += gg
 
-    kappa_radial = _K / _N
-    gammat_radial = _GT / _N
+    kappa_radial = np.where(_N > 0, _K / _N, np.nan)
+    gammat_radial = np.where(_N > 0, _GT / _N, np.nan)
     return r_bins, gammat_radial, kappa_radial
 
 
-def remove_projected_convergence(z_l, l_proj, cosmo):
+def remove_projected_convergence(mass_map,z_l, l_proj, cosmo):
     # the convergence is only given by the excess mass overdensity w.r.t. to the mean density
     # but if we project l_proj = +/- 10 Mpc/h, we accumulate mean matter density in the mass map
     # this mean matter density does not contribute to the convergence in WL
