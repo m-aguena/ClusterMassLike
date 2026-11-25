@@ -46,14 +46,14 @@ def profile_from_map(
 
     Et, Ex, R, phi = lensing.getTangential(E1, E2, miscentering, pix_size)
 
-    mass_map = lensing.remove_projected_convergence(z_l, l_proj, cosmo)
+    mass_map = lensing.remove_projected_convergence(mass_map,z_l, l_proj, cosmo)
 
     # to save memory, let us project this into wedges with radial bins
     r_bins, gammat_radial, kappa_radial = lensing.compress_gt(
         mass_map, Et, R, phi, n_rbins
     )
 
-    Sigma_inv_ls = lensing.Sigma_crit_inv(z_l, z_s_arr)
+    Sigma_inv_ls = lensing.Sigma_crit_inv(z_l, z_s_arr, cosmo)
 
     gt_map = (
         Sigma_inv_ls[None, None, :]

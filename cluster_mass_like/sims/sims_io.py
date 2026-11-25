@@ -1,4 +1,3 @@
-from pathlib import Path
 
 import numpy as np
 from astropy.table import Table
@@ -36,7 +35,7 @@ def load_massmap(filepath, pix_size):
 
 def prepare_groups_catalog(groups_path, m_bins, cosmo, n_rbins=51):
     """adds necessary columns to input group catalog"""
-    groups = Table.read(groups_path)
+    groups = Table.read(groups_path, format='fits')
 
     # add columns for later
     groups.add_column(np.zeros((len(groups), n_rbins)), name="DSig_t")
@@ -66,11 +65,11 @@ def prepare_groups_catalog(groups_path, m_bins, cosmo, n_rbins=51):
     # get mass bins
     groups["mass_bins"] = np.digitize(groups["mass_lum"], m_bins)
     # trim unnecessary bins
-    keep_bins = np.where((groups["mass_bins"] > 1) & (groups["mass_bins"] < 7))
+    keep_bins = np.where((groups["mass_bins"] > 1) & (groups["mass_bins"] < 7) & (groups['logM200'] > 12.5))
     groups = groups[keep_bins]
     return groups
 
 
 def stack_profiles(profiles, sigma_crit):
     weights = 1 / (sigma_crit) ** 2
-    stack_profiles = np.average(profiles, weights=weights)
+    return np.average(profiles, weights=weights, axis=0)
